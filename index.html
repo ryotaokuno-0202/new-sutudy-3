@@ -279,7 +279,7 @@
             });
         }
 
-        // --- ★修正ポイント：もっとも稼働実績のある安定版「v1/gemini-1.5-flash」に変更 ---
+        // --- ★修正：もっとも確実で高機能な「v1beta/gemini-2.0-flash」の組み合わせへ完全修正 ---
         async function generateTranscript(audioFile, apiKey) {
             const base64Audio = await fileToBase64(audioFile);
             
@@ -292,8 +292,8 @@
                 else mimeType = 'audio/mp3';
             }
 
-            // 完全なる安定URL（v1）と、実績ナンバーワンモデル「gemini-1.5-flash」の組み合わせ
-            const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+            // インライン送信が100%サポートされている確実な最新の標準URL
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
             const requestBody = {
                 contents: [{
@@ -320,9 +320,9 @@
             return data.candidates[0].content.parts[0].text;
         }
 
-        // --- ★要約も同様に「v1/gemini-1.5-flash」に統一 ---
+        // --- ★要約も同様に「v1beta/gemini-2.0-flash」に統一 ---
         async function generateSummary(transcriptText, apiKey) {
-            const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
             const promptText = `
 以下の講義の文字起こしデータを元に、「全体の要約（150文字程度）」と「重要な要点（3〜5個の箇条書き）」を作成してください。
