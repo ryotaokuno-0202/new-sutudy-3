@@ -279,7 +279,7 @@
             });
         }
 
-        // --- 文字起こし処理（最新の安定したルーティングモデルを指定） ---
+        // --- ★修正ポイント：もっとも稼働実績のある安定版「v1/gemini-1.5-flash」に変更 ---
         async function generateTranscript(audioFile, apiKey) {
             const base64Audio = await fileToBase64(audioFile);
             
@@ -292,8 +292,8 @@
                 else mimeType = 'audio/mp3';
             }
 
-            // ★ 混雑回避用：安定ルーティングの「gemini-2.5-flash-latest」に変更
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-latest:generateContent?key=${apiKey}`;
+            // 完全なる安定URL（v1）と、実績ナンバーワンモデル「gemini-1.5-flash」の組み合わせ
+            const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
             const requestBody = {
                 contents: [{
@@ -320,10 +320,9 @@
             return data.candidates[0].content.parts[0].text;
         }
 
-        // --- 要約 ＆ 要点生成処理（こちらも同様に変更） ---
+        // --- ★要約も同様に「v1/gemini-1.5-flash」に統一 ---
         async function generateSummary(transcriptText, apiKey) {
-            // ★ 混雑回避用：安定ルーティングの「gemini-2.5-flash-latest」に変更
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-latest:generateContent?key=${apiKey}`;
+            const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
             const promptText = `
 以下の講義の文字起こしデータを元に、「全体の要約（150文字程度）」と「重要な要点（3〜5個の箇条書き）」を作成してください。
