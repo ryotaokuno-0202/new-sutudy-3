@@ -123,6 +123,7 @@
             background: #ccc;
             box-shadow: none;
             cursor: not-allowed;
+            opacity: 0.7;
         }
         .result-section {
             display: none;
@@ -212,7 +213,7 @@
                 <div class="result-title" style="margin-bottom: 10px;">📌 重要な要点</div>
                 <div class="output-box">
                     <ul class="points-list" id="points-output">
-                        <li>ここに要点が箇記事で表示されます。</li>
+                        <li>ここに要点が箇条書きで表示されます。</li>
                     </ul>
                 </div>
             </div>
@@ -245,12 +246,10 @@
             });
         }
 
-        // --- ★公式ドキュメントに完全に準拠した最新の推奨指定に変更 ---
         async function generateTranscript(audioFile, apiKey) {
             const base64Audio = await fileToBase64(audioFile);
             let mimeType = audioFile.type || 'audio/mp3';
 
-            // 最新の標準エンドポイント（v1beta）と現行のプロダクション推奨Stableモデル「gemini-2.5-flash」を使用
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
             const requestBody = {
@@ -320,13 +319,14 @@ ${transcriptText}
 
         document.addEventListener('DOMContentLoaded', () => {
             const submitBtn = document.getElementById('submit-btn');
+            const resetBtn = document.getElementById('reset-api-btn');
             const audioInput = document.getElementById('audio-input');
             const resultSection = document.getElementById('result-section');
             const transcriptOutput = document.getElementById('transcript-output');
             const summaryOutput = document.getElementById('summary-output');
             const pointsOutput = document.getElementById('points-output');
 
-            document.getElementById('reset-api-btn').addEventListener('click', () => {
+            resetBtn.addEventListener('click', () => {
                 const newKey = prompt('新しいGemini APIキーを入力してください：');
                 if (newKey) saveApiKey(newKey);
             });
@@ -344,7 +344,10 @@ ${transcriptText}
                 if (!audioInput.files || !audioInput.files[0]) return alert('ファイルを選択してください。');
 
                 const file = audioInput.files[0];
+                
+                // ★ボタンと設定用リンクを両方無効化して固まるのを防ぐ
                 submitBtn.disabled = true;
+                resetBtn.disabled = true;
                 submitBtn.innerText = '⏳ AIが解析中...';
 
                 try {
@@ -366,7 +369,9 @@ ${transcriptText}
                     console.error(error);
                     alert('処理中にエラーが発生しました。時間を置いてもう一度試すか、ファイルが大きすぎる可能性があります。');
                 } finally {
+                    // ★エラーが起きても必ずここを通り、ボタンが100%復活する
                     submitBtn.disabled = false;
+                    resetBtn.disabled = false;
                     submitBtn.innerText = '✨ AIノートを作成する';
                 }
             });
