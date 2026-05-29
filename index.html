@@ -183,11 +183,11 @@
         <div class="card">
             <h2>🎙 講義データの入力</h2>
             <div class="form-group">
-                <label>講義名（任意）</label>
+                <label for="lecture-name">講義名（任意）</label>
                 <input type="text" class="input-text" id="lecture-name" placeholder="情報理論">
             </div>
             <div class="form-group">
-                <label>音声または動画ファイル</label>
+                <label for="audio-input">音声または動画ファイル</label>
                 <div class="file-input-wrapper">
                     <input type="file" id="audio-input" accept="audio/*,video/mp4,video/x-m4v,video/*">
                     <div class="file-hint">※ 推奨: 20MB以下のMP3/WAV/M4A/MP4ファイル。</div>
@@ -246,16 +246,26 @@
             });
         }
 
+        // --- ★最新のドキュメント基準に基づき、最も安定した「v1beta/models/gemini-2.5-flash」のエンドポイントへ固定 ---
         async function generateTranscript(audioFile, apiKey) {
             const base64Audio = await fileToBase64(audioFile);
-            let mimeType = audioFile.type || 'audio/mp3';
+            let mimeType = audioFile.type;
+            
+            // MimeTypeが空の場合の安全な補完ロジック
+            if (!mimeType) {
+                if (audioFile.name.endsWith('.mp4')) mimeType = 'video/mp4';
+                else if (audioFile.name.endsWith('.m4a')) mimeType = 'audio/m4a';
+                else if (audioFile.name.endsWith('.mp3')) mimeType = 'audio/mp3';
+                else if (audioFile.name.endsWith('.wav')) mimeType = 'audio/wav';
+                else mimeType = 'audio/mp3';
+            }
 
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
             const requestBody = {
                 contents: [{
                     parts: [
-                        { text: "提供された講義ファイルから、日本語で正確に文字起こしを行ってください。結果のテキストのみを出力してください。" },
+                        { text: "提供された講義ファイルから、日本語で正確に一言一句漏らさず文字起こしを行ってください。解説文や挨拶などの余計なテキストは含めず、文字起こしの結果テキストのみを出力してください。" },
                         { inlineData: { mimeType: mimeType, data: base64Audio } }
                     ]
                 }]
@@ -287,9 +297,9 @@
 ${transcriptText}
 
 【出力フォーマット】
-必ず以下のJSON形式でのみ出力してください。
+必ず以下のJSON形式でのみ出力してください。前後の\`\`\`jsonのようなマークダウンは一切含めないでください。
 {
-  "summary": "要約文",
+  "summary": "要約文を記述",
   "points": ["要点1", "要点2", "要点3"]
 }
 `;
@@ -345,16 +355,17 @@ ${transcriptText}
 
                 const file = audioInput.files[0];
                 
-                // ★ボタンと設定用リンクを両方無効化して固まるのを防ぐ
                 submitBtn.disabled = true;
                 resetBtn.disabled = true;
                 submitBtn.innerText = '⏳ AIが解析中...';
 
                 try {
+                    // ① 文字起こし
                     const transcript = await generateTranscript(file, apiKey);
                     transcriptOutput.innerText = transcript;
                     resultSection.style.display = 'block';
 
+                    // ② 要約
                     const resultJson = await generateSummary(transcript, apiKey);
                     summaryOutput.innerText = resultJson.summary;
 
@@ -367,9 +378,8 @@ ${transcriptText}
                     alert('✨ AIノートが完成しました！');
                 } catch (error) {
                     console.error(error);
-                    alert('処理中にエラーが発生しました。時間を置いてもう一度試すか、ファイルが大きすぎる可能性があります。');
+                    alert('GoogleのAIサーバーが大変混雑しているか、制限に達しました。時間を置いて短めの音声ファイルでお試しください。');
                 } finally {
-                    // ★エラーが起きても必ずここを通り、ボタンが100%復活する
                     submitBtn.disabled = false;
                     resetBtn.disabled = false;
                     submitBtn.innerText = '✨ AIノートを作成する';
