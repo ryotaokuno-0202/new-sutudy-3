@@ -279,21 +279,21 @@
             });
         }
 
-        // --- 修正ポイント：MimeTypeの判定を強化 ---
+        // --- 文字起こし処理（最新の安定したルーティングモデルを指定） ---
         async function generateTranscript(audioFile, apiKey) {
             const base64Audio = await fileToBase64(audioFile);
             
-            // ファイルの拡張子や元のタイプから適切なMimeTypeを判別
             let mimeType = audioFile.type;
             if (!mimeType) {
                 if (audioFile.name.endsWith('.mp4')) mimeType = 'video/mp4';
                 else if (audioFile.name.endsWith('.m4a')) mimeType = 'audio/m4a';
                 else if (audioFile.name.endsWith('.mp3')) mimeType = 'audio/mp3';
                 else if (audioFile.name.endsWith('.wav')) mimeType = 'audio/wav';
-                else mimeType = 'audio/mp3'; // 最悪のケースのフォールバック
+                else mimeType = 'audio/mp3';
             }
 
-const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+            // ★ 混雑回避用：安定ルーティングの「gemini-2.5-flash-latest」に変更
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-latest:generateContent?key=${apiKey}`;
 
             const requestBody = {
                 contents: [{
@@ -320,8 +320,10 @@ const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-
             return data.candidates[0].content.parts[0].text;
         }
 
+        // --- 要約 ＆ 要点生成処理（こちらも同様に変更） ---
         async function generateSummary(transcriptText, apiKey) {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+            // ★ 混雑回避用：安定ルーティングの「gemini-2.5-flash-latest」に変更
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-latest:generateContent?key=${apiKey}`;
 
             const promptText = `
 以下の講義の文字起こしデータを元に、「全体の要約（150文字程度）」と「重要な要点（3〜5個の箇条書き）」を作成してください。
@@ -400,7 +402,7 @@ ${transcriptText}
                 const file = audioInput.files[0];
 
                 submitBtn.disabled = true;
-                submitBtn.innerText = '⏳ AIが解析中（動画・大容量ファイルは2〜3分かかる場合があります）...';
+                submitBtn.innerText = '⏳ AIが解析中（数分かかる場合があります）...';
 
                 try {
                     const transcript = await generateTranscript(file, apiKey);
@@ -422,7 +424,7 @@ ${transcriptText}
 
                 } catch (error) {
                     console.error(error);
-                    alert('処理中にエラーが発生しました。ファイルサイズが大きすぎる（20MB以上）か、APIキーの設定、またはファイルが破損している可能性があります。');
+                    alert('処理中にエラーが発生しました。時間を置いてもう一度試すか、ファイルサイズが大きすぎる（20MB以上）可能性、あるいはAPIキーが正しいか確認してください。');
                 } finally {
                     submitBtn.disabled = false;
                     submitBtn.innerText = '✨ AIノートを作成する';
