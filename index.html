@@ -1,391 +1,614 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Lecture Audio Notes</title>
+
     <style>
         body {
-            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
             background-color: #fcf9f2;
             margin: 0;
             padding: 0;
             color: #333;
         }
+
         .header {
             text-align: center;
-            padding: 60px 20px 40px 20px;
-            background: linear-gradient(to bottom, rgba(255,255,255,0.8), rgba(252,249,242,1));
+            padding: 60px 20px 40px;
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0.8),
+                rgba(252,249,242,1)
+            );
         }
+
         .header h1 {
             font-size: 2.5rem;
             color: #1a2e40;
-            margin: 0 0 10px 0;
-            font-weight: 700;
+            margin-bottom: 10px;
         }
-        .header p {
-            color: #666;
-            margin: 5px 0;
-            font-size: 0.95rem;
-            line-height: 1.6;
-        }
+
         .container {
             max-width: 800px;
-            margin: 0 auto 60px auto;
+            margin: 0 auto 60px;
             padding: 0 20px;
         }
-        .api-setting-wrapper {
-            text-align: right;
-            margin-bottom: 20px;
-        }
-        .api-setting-btn {
-            background: none;
-            border: none;
-            color: #666;
-            cursor: pointer;
-            font-size: 0.9rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .api-setting-btn:hover {
-            color: #333;
-            text-decoration: underline;
-        }
+
         .card {
-            background: #ffffff;
+            background: white;
             border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
             padding: 30px;
             margin-bottom: 30px;
-            border: 1px solid rgba(0,0,0,0.02);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
         }
-        .card h2 {
-            font-size: 1.2rem;
-            color: #1a2e40;
-            margin-top: 0;
-            margin-bottom: 25px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+
         .form-group {
             margin-bottom: 20px;
         }
-        .form-group label {
+
+        label {
             display: block;
-            font-weight: bold;
             margin-bottom: 8px;
-            font-size: 0.95rem;
-            color: #333;
+            font-weight: bold;
         }
+
         .input-text {
             width: 100%;
             padding: 12px;
-            border: 1px solid #ebdcb9;
+            border: 1px solid #ddd;
             border-radius: 6px;
             box-sizing: border-box;
-            background-color: #fffdf9;
-            font-size: 1rem;
         }
+
         .file-input-wrapper {
-            border: 1px solid #ebdcb9;
+            border: 1px solid #ddd;
             padding: 15px;
             border-radius: 6px;
-            background-color: #fffdf9;
+            background: #fafafa;
         }
-        .file-hint {
-            font-size: 0.8rem;
-            color: #999;
-            margin-top: 8px;
-        }
+
         .submit-btn {
             width: 100%;
-            background: linear-gradient(135deg, #74b3e6, #5fa3dc);
-            color: white;
-            border: none;
             padding: 15px;
+            border: none;
             border-radius: 8px;
-            font-size: 1.1rem;
+            background: #5fa3dc;
+            color: white;
+            font-size: 1rem;
             font-weight: bold;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(116, 179, 230, 0.3);
-            transition: opacity 0.2s;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
         }
-        .submit-btn:hover {
-            opacity: 0.9;
-        }
+
         .submit-btn:disabled {
-            background: #ccc;
-            box-shadow: none;
+            opacity: 0.6;
             cursor: not-allowed;
-            opacity: 0.7;
         }
+
         .result-section {
             display: none;
         }
-        .result-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-        .result-title {
-            font-weight: bold;
-            color: #1a2e40;
-        }
-        .copy-btn {
-            background-color: #f0f0f0;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            cursor: pointer;
-            color: #555;
-        }
-        .copy-btn:hover {
-            background-color: #e5e5e5;
-        }
+
         .output-box {
-            background-color: #fafafa;
+            background: #fafafa;
             border: 1px solid #eee;
-            padding: 15px;
             border-radius: 6px;
-            min-height: 80px;
+            padding: 15px;
             white-space: pre-wrap;
-            line-height: 1.6;
-            font-size: 0.95rem;
+            line-height: 1.7;
         }
-        .points-list {
-            margin: 0;
-            padding-left: 20px;
+
+        .copy-btn {
+            margin-top: 10px;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        ul {
             line-height: 1.8;
         }
     </style>
 </head>
+
 <body>
 
-    <div class="header">
-        <h1>Lecture Audio Notes</h1>
-        <p>講義の音声を、知識に変える。</p>
-        <p>AIが文字起こしと要約を自動生成します。</p>
+<div class="header">
+    <h1>Lecture Audio Notes</h1>
+    <p>講義音声をAIで文字起こし＆要約</p>
+</div>
+
+<div class="container">
+
+    <div class="card">
+
+        <div class="form-group">
+            <label>講義名</label>
+            <input
+                type="text"
+                class="input-text"
+                id="lecture-name"
+                placeholder="情報理論"
+            />
+        </div>
+
+        <div class="form-group">
+            <label>音声ファイル</label>
+
+            <div class="file-input-wrapper">
+                <input
+                    type="file"
+                    id="audio-input"
+                    accept="audio/*,video/*"
+                />
+            </div>
+        </div>
+
+        <button class="submit-btn" id="submit-btn">
+            ✨ AIノートを作成する
+        </button>
+
     </div>
 
-    <div class="container">
-        <div class="api-setting-wrapper">
-            <button type="button" class="api-setting-btn" id="reset-api-btn">⚙ APIキーを再設定</button>
+    <div class="result-section" id="result-section">
+
+        <div class="card">
+            <h2>📝 文字起こし</h2>
+
+            <div class="output-box" id="transcript-output"></div>
+
+            <button
+                class="copy-btn"
+                onclick="copyText('transcript-output')"
+            >
+                コピー
+            </button>
         </div>
 
         <div class="card">
-            <h2>🎙 講義データの入力</h2>
-            <div class="form-group">
-                <label for="lecture-name">講義名（任意）</label>
-                <input type="text" class="input-text" id="lecture-name" placeholder="情報理論">
-            </div>
-            <div class="form-group">
-                <label for="audio-input">音声または動画ファイル</label>
-                <div class="file-input-wrapper">
-                    <input type="file" id="audio-input" accept="audio/*,video/mp4,video/x-m4v,video/*">
-                    <div class="file-hint">※ 推奨: 20MB以下のMP3/WAV/M4A/MP4ファイル。</div>
-                </div>
-            </div>
-            <button type="button" class="submit-btn" id="submit-btn">✨ AIノートを作成する</button>
+            <h2>💡 要約</h2>
+
+            <div class="output-box" id="summary-output"></div>
+
+            <h3>📌 要点</h3>
+
+            <ul id="points-output"></ul>
         </div>
 
-        <div class="result-section" id="result-section">
-            <div class="card">
-                <div class="result-header">
-                    <div class="result-title">📝 文字起こし全文</div>
-                    <button class="copy-btn" id="copy-transcript-btn">コピー</button>
-                </div>
-                <div class="output-box" id="transcript-output">ここに文字起こしが表示されます。</div>
-            </div>
-            <div class="card">
-                <div class="result-header">
-                    <div class="result-title">💡 講義の要約</div>
-                    <button class="copy-btn" id="copy-summary-btn">コピー</button>
-                </div>
-                <div class="output-box" id="summary-output" style="margin-bottom: 20px;">ここに要約が表示されます。</div>
-                <div class="result-title" style="margin-bottom: 10px;">📌 重要な要点</div>
-                <div class="output-box">
-                    <ul class="points-list" id="points-output">
-                        <li>ここに要点が箇条書きで表示されます。</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
     </div>
 
-    <script>
-        function saveApiKey(key) {
+</div>
+
+<script>
+
+    // =========================
+    // API KEY
+    // =========================
+
+    function saveApiKey(key) {
+        localStorage.setItem("gemini_api_key", key);
+    }
+
+    function getApiKey() {
+
+        let key = localStorage.getItem("gemini_api_key");
+
+        if (!key) {
+            key = prompt("Gemini APIキーを入力してください");
+
             if (key) {
-                localStorage.setItem('gemini_api_key', key);
-                alert('APIキーを保存しました。');
+                saveApiKey(key);
             }
         }
 
-        function getApiKey() {
-            let key = localStorage.getItem('gemini_api_key');
-            if (!key) {
-                key = prompt('Gemini APIキーを入力してください：');
-                if (key) saveApiKey(key);
-            }
-            return key;
-        }
+        return key;
+    }
 
-        function fileToBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result.split(',')[1]);
-                reader.onerror = error => reject(error);
-            });
-        }
+    // =========================
+    // Base64変換
+    // =========================
 
-        // --- ★最新のドキュメント基準に基づき、最も安定した「v1beta/models/gemini-2.5-flash」のエンドポイントへ固定 ---
-        async function generateTranscript(audioFile, apiKey) {
-            const base64Audio = await fileToBase64(audioFile);
-            let mimeType = audioFile.type;
-            
-            // MimeTypeが空の場合の安全な補完ロジック
-            if (!mimeType) {
-                if (audioFile.name.endsWith('.mp4')) mimeType = 'video/mp4';
-                else if (audioFile.name.endsWith('.m4a')) mimeType = 'audio/m4a';
-                else if (audioFile.name.endsWith('.mp3')) mimeType = 'audio/mp3';
-                else if (audioFile.name.endsWith('.wav')) mimeType = 'audio/wav';
-                else mimeType = 'audio/mp3';
-            }
+    function fileToBase64(file) {
 
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+        return new Promise((resolve, reject) => {
 
-            const requestBody = {
-                contents: [{
-                    parts: [
-                        { text: "提供された講義ファイルから、日本語で正確に一言一句漏らさず文字起こしを行ってください。解説文や挨拶などの余計なテキストは含めず、文字起こしの結果テキストのみを出力してください。" },
-                        { inlineData: { mimeType: mimeType, data: base64Audio } }
-                    ]
-                }]
+            const reader = new FileReader();
+
+            reader.readAsDataURL(file);
+
+            reader.onload = () => {
+                resolve(reader.result.split(",")[1]);
             };
 
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(requestBody)
-            });
-            
-            if (!response.ok) {
-                const errData = await response.json();
-                console.error('APIエラー詳細:', errData);
-                throw new Error('文字起こしに失敗しました。');
+            reader.onerror = reject;
+
+        });
+
+    }
+
+    // =========================
+    // Retry付きfetch
+    // =========================
+
+    async function fetchWithRetry(url, options, retries = 3) {
+
+        for (let i = 0; i < retries; i++) {
+
+            const response = await fetch(url, options);
+
+            if (response.ok) {
+                return response;
             }
-            
-            const data = await response.json();
-            return data.candidates[0].content.parts[0].text;
+
+            // 503のみリトライ
+            if (response.status !== 503) {
+
+                const errText = await response.text();
+
+                throw new Error(
+                    `HTTP ${response.status}\n${errText}`
+                );
+            }
+
+            console.warn(
+                `503 retry ${i + 1}/${retries}`
+            );
+
+            await new Promise(r => setTimeout(r, 2000));
         }
 
-        async function generateSummary(transcriptText, apiKey) {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+        throw new Error("Gemini APIが混雑しています");
+    }
 
-            const promptText = `
-以下の講義の文字起こしデータを元に、「全体の要約（150文字程度）」と「重要な要点（3〜5個の箇条書き）」を作成してください。
+    // =========================
+    // MIME TYPE
+    // =========================
 
-【文字起こしデータ】
-${transcriptText}
+    function detectMimeType(file) {
 
-【出力フォーマット】
-必ず以下のJSON形式でのみ出力してください。前後の\`\`\`jsonのようなマークダウンは一切含めないでください。
+        if (file.type) {
+            return file.type;
+        }
+
+        const name = file.name.toLowerCase();
+
+        if (name.endsWith(".mp3")) {
+            return "audio/mpeg";
+        }
+
+        if (name.endsWith(".wav")) {
+            return "audio/wav";
+        }
+
+        if (name.endsWith(".m4a")) {
+            return "audio/mp4";
+        }
+
+        if (name.endsWith(".mp4")) {
+            return "video/mp4";
+        }
+
+        return "audio/mpeg";
+    }
+
+    // =========================
+    // 文字起こし
+    // =========================
+
+    async function generateTranscript(file, apiKey) {
+
+        const base64Audio = await fileToBase64(file);
+
+        const mimeType = detectMimeType(file);
+
+        // 安定性重視で1.5 flash
+        const url =
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+        const body = {
+
+            contents: [
+                {
+                    parts: [
+
+                        {
+                            text:
+`この講義音声を日本語で正確に文字起こししてください。
+余計な説明は不要です。
+文字起こし結果のみを出力してください。`
+                        },
+
+                        {
+                            inlineData: {
+                                mimeType: mimeType,
+                                data: base64Audio
+                            }
+                        }
+
+                    ]
+                }
+            ]
+
+        };
+
+        const response = await fetchWithRetry(
+            url,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(body)
+            }
+        );
+
+        const data = await response.json();
+
+        console.log("Transcript Response:", data);
+
+        if (
+            !data.candidates ||
+            !data.candidates.length
+        ) {
+
+            throw new Error(
+                JSON.stringify(data, null, 2)
+            );
+        }
+
+        return data.candidates[0]
+            .content.parts[0].text;
+    }
+
+    // =========================
+    // 要約
+    // =========================
+
+    async function generateSummary(
+        transcript,
+        apiKey
+    ) {
+
+        const url =
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+        const prompt = `
+以下の講義文字起こしを要約してください。
+
+【出力形式】
 {
-  "summary": "要約文を記述",
-  "points": ["要点1", "要点2", "要点3"]
+  "summary": "150文字程度の要約",
+  "points": [
+    "要点1",
+    "要点2",
+    "要点3"
+  ]
 }
+
+【講義データ】
+${transcript}
 `;
 
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
-            });
-
-            if (!response.ok) throw new Error('要約に失敗しました。');
-
-            const data = await response.json();
-            let rawJsonText = data.candidates[0].content.parts[0].text.trim();
-            
-            if (rawJsonText.startsWith("```")) {
-                rawJsonText = rawJsonText.replace(/^```json\s*/i, "").replace(/```$/, "").trim();
-            }
-
-            return JSON.parse(rawJsonText);
-        }
-
-        function copyText(elementId) {
-            const text = document.getElementById(elementId).innerText;
-            navigator.clipboard.writeText(text).then(() => alert('コピーしました！'));
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const submitBtn = document.getElementById('submit-btn');
-            const resetBtn = document.getElementById('reset-api-btn');
-            const audioInput = document.getElementById('audio-input');
-            const resultSection = document.getElementById('result-section');
-            const transcriptOutput = document.getElementById('transcript-output');
-            const summaryOutput = document.getElementById('summary-output');
-            const pointsOutput = document.getElementById('points-output');
-
-            resetBtn.addEventListener('click', () => {
-                const newKey = prompt('新しいGemini APIキーを入力してください：');
-                if (newKey) saveApiKey(newKey);
-            });
-
-            document.getElementById('copy-transcript-btn').addEventListener('click', () => copyText('transcript-output'));
-            document.getElementById('copy-summary-btn').addEventListener('click', () => {
-                const summary = summaryOutput.innerText;
-                const points = Array.from(pointsOutput.querySelectorAll('li')).map(li => `・${li.innerText}`).join('\n');
-                navigator.clipboard.writeText(`【要約】\n${summary}\n\n【要点】\n${points}`).then(() => alert('要約と要点をコピーしました！'));
-            });
-
-            submitBtn.addEventListener('click', async () => {
-                const apiKey = getApiKey();
-                if (!apiKey) return;
-                if (!audioInput.files || !audioInput.files[0]) return alert('ファイルを選択してください。');
-
-                const file = audioInput.files[0];
-                
-                submitBtn.disabled = true;
-                resetBtn.disabled = true;
-                submitBtn.innerText = '⏳ AIが解析中...';
-
-                try {
-                    // ① 文字起こし
-                    const transcript = await generateTranscript(file, apiKey);
-                    transcriptOutput.innerText = transcript;
-                    resultSection.style.display = 'block';
-
-                    // ② 要約
-                    const resultJson = await generateSummary(transcript, apiKey);
-                    summaryOutput.innerText = resultJson.summary;
-
-                    pointsOutput.innerHTML = '';
-                    resultJson.points.forEach(point => {
-                        const li = document.createElement('li');
-                        li.innerText = point;
-                        pointsOutput.appendChild(li);
-                    });
-                    alert('✨ AIノートが完成しました！');
-                } catch (error) {
-                    console.error(error);
-                    alert('GoogleのAIサーバーが大変混雑しているか、制限に達しました。時間を置いて短めの音声ファイルでお試しください。');
-                } finally {
-                    submitBtn.disabled = false;
-                    resetBtn.disabled = false;
-                    submitBtn.innerText = '✨ AIノートを作成する';
+        const body = {
+            contents: [
+                {
+                    parts: [
+                        {
+                            text: prompt
+                        }
+                    ]
                 }
-            });
-        });
-    </script>
+            ]
+        };
+
+        const response = await fetchWithRetry(
+            url,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(body)
+            }
+        );
+
+        const data = await response.json();
+
+        console.log("Summary Response:", data);
+
+        if (
+            !data.candidates ||
+            !data.candidates.length
+        ) {
+
+            throw new Error(
+                JSON.stringify(data, null, 2)
+            );
+        }
+
+        let raw =
+            data.candidates[0]
+            .content.parts[0].text.trim();
+
+        // ```json 除去
+        raw = raw
+            .replace(/^```json/i, "")
+            .replace(/^```/, "")
+            .replace(/```$/, "")
+            .trim();
+
+        return JSON.parse(raw);
+    }
+
+    // =========================
+    // コピー
+    // =========================
+
+    function copyText(id) {
+
+        const text =
+            document.getElementById(id).innerText;
+
+        navigator.clipboard.writeText(text);
+
+        alert("コピーしました");
+    }
+
+    // =========================
+    // UI
+    // =========================
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        () => {
+
+            const submitBtn =
+                document.getElementById(
+                    "submit-btn"
+                );
+
+            const audioInput =
+                document.getElementById(
+                    "audio-input"
+                );
+
+            const resultSection =
+                document.getElementById(
+                    "result-section"
+                );
+
+            const transcriptOutput =
+                document.getElementById(
+                    "transcript-output"
+                );
+
+            const summaryOutput =
+                document.getElementById(
+                    "summary-output"
+                );
+
+            const pointsOutput =
+                document.getElementById(
+                    "points-output"
+                );
+
+            submitBtn.addEventListener(
+                "click",
+                async () => {
+
+                    try {
+
+                        const apiKey =
+                            getApiKey();
+
+                        if (!apiKey) {
+                            alert(
+                                "APIキーが必要です"
+                            );
+                            return;
+                        }
+
+                        if (
+                            !audioInput.files ||
+                            !audioInput.files[0]
+                        ) {
+                            alert(
+                                "ファイルを選択してください"
+                            );
+                            return;
+                        }
+
+                        const file =
+                            audioInput.files[0];
+
+                        // 10MB制限
+                        if (
+                            file.size >
+                            10 * 1024 * 1024
+                        ) {
+                            alert(
+                                "10MB以下のファイルを使用してください"
+                            );
+                            return;
+                        }
+
+                        submitBtn.disabled = true;
+
+                        submitBtn.innerText =
+                            "⏳ AI解析中...";
+
+                        // 文字起こし
+                        const transcript =
+                            await generateTranscript(
+                                file,
+                                apiKey
+                            );
+
+                        transcriptOutput.innerText =
+                            transcript;
+
+                        resultSection.style.display =
+                            "block";
+
+                        // 要約
+                        const result =
+                            await generateSummary(
+                                transcript,
+                                apiKey
+                            );
+
+                        summaryOutput.innerText =
+                            result.summary;
+
+                        pointsOutput.innerHTML = "";
+
+                        result.points.forEach(
+                            point => {
+
+                                const li =
+                                    document.createElement(
+                                        "li"
+                                    );
+
+                                li.innerText = point;
+
+                                pointsOutput.appendChild(
+                                    li
+                                );
+                            }
+                        );
+
+                        alert(
+                            "✨ AIノート完成！"
+                        );
+
+                    } catch (error) {
+
+                        console.error(error);
+
+                        alert(
+`エラーが発生しました。
+
+${error.message}`
+                        );
+
+                    } finally {
+
+                        submitBtn.disabled = false;
+
+                        submitBtn.innerText =
+                            "✨ AIノートを作成する";
+                    }
+
+                }
+            );
+
+        }
+    );
+
+</script>
+
 </body>
 </html>
