@@ -10,13 +10,12 @@
            ========================================== */
         body {
             font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
-            background-color: #fcf9f2; /* スクリーンショットのような温かみのあるベージュ */
+            background-color: #fcf9f2;
             margin: 0;
             padding: 0;
             color: #333;
         }
 
-        /* ヘッダー部分 */
         .header {
             text-align: center;
             padding: 60px 20px 40px 20px;
@@ -37,14 +36,12 @@
             line-height: 1.6;
         }
 
-        /* メインコンテンツの器 */
         .container {
             max-width: 800px;
             margin: 0 auto 60px auto;
             padding: 0 20px;
         }
 
-        /* 設定リンクボタン */
         .api-setting-wrapper {
             text-align: right;
             margin-bottom: 20px;
@@ -65,7 +62,6 @@
             text-decoration: underline;
         }
 
-        /* 白いカード（入力・出力エリア共通） */
         .card {
             background: #ffffff;
             border-radius: 12px;
@@ -85,7 +81,6 @@
             gap: 8px;
         }
 
-        /* フォーム要素 */
         .form-group {
             margin-bottom: 20px;
         }
@@ -101,14 +96,13 @@
         .input-text {
             width: 100%;
             padding: 12px;
-            border: 1px solid #ebdcb9; /* 枠線もトーンを合わせる */
+            border: 1px solid #ebdcb9;
             border-radius: 6px;
             box-sizing: border-box;
             background-color: #fffdf9;
             font-size: 1rem;
         }
 
-        /* ファイル選択エリア */
         .file-input-wrapper {
             border: 1px solid #ebdcb9;
             padding: 15px;
@@ -122,10 +116,9 @@
             margin-top: 8px;
         }
 
-        /* メインアクションボタン */
         .submit-btn {
             width: 100%;
-            background: linear-gradient(135deg, #74b3e6, #5fa3dc); /* 青いグラデーション */
+            background: linear-gradient(135deg, #74b3e6, #5fa3dc);
             color: white;
             border: none;
             padding: 15px;
@@ -151,9 +144,8 @@
             cursor: not-allowed;
         }
 
-        /* 結果表示エリア関連 */
         .result-section {
-            display: none; /* 初期状態は非表示、生成後にJSで表示 */
+            display: none;
         }
 
         .result-header {
@@ -187,7 +179,7 @@
             padding: 15px;
             border-radius: 6px;
             min-height: 80px;
-            white-space: pre-wrap; /* 改行を有効にする */
+            white-space: pre-wrap;
             line-height: 1.6;
             font-size: 0.95rem;
         }
@@ -222,10 +214,10 @@
             </div>
 
             <div class="form-group">
-                <label>音声ファイル</label>
+                <label>音声または動画ファイル</label>
                 <div class="file-input-wrapper">
-                    <input type="file" id="audio-input" accept="audio/*">
-                    <div class="file-hint">※ 推奨: 20MB以下のMP3/WAV/M4Aファイル。長い講義は分割してください。</div>
+                    <input type="file" id="audio-input" accept="audio/*,video/mp4,video/x-m4v,video/*">
+                    <div class="file-hint">※ 推奨: 20MB以下のMP3/WAV/M4A/MP4ファイル。長い講義は分割してください。</div>
                 </div>
             </div>
 
@@ -262,7 +254,6 @@
     </div>
 
     <script>
-        // --- 1. APIキーの管理 ---
         function saveApiKey(key) {
             if (key) {
                 localStorage.setItem('gemini_api_key', key);
@@ -274,14 +265,11 @@
             let key = localStorage.getItem('gemini_api_key');
             if (!key) {
                 key = prompt('Gemini APIキーが見つかりません。キーを入力してください：\n（※キーはブラウザ内にのみ保存され、公開されません）');
-                if (key) {
-                    saveApiKey(key);
-                }
+                if (key) saveApiKey(key);
             }
             return key;
         }
 
-        // --- 2. 音声ファイルのBase64変換関数 ---
         function fileToBase64(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -291,17 +279,26 @@
             });
         }
 
-        // --- 3. Gemini API: 文字起こし処理 ---
+        // --- 修正ポイント：MimeTypeの判定を強化 ---
         async function generateTranscript(audioFile, apiKey) {
             const base64Audio = await fileToBase64(audioFile);
-            const mimeType = audioFile.type || 'audio/mp3'; // 判別できない場合はデフォルトmp3
+            
+            // ファイルの拡張子や元のタイプから適切なMimeTypeを判別
+            let mimeType = audioFile.type;
+            if (!mimeType) {
+                if (audioFile.name.endsWith('.mp4')) mimeType = 'video/mp4';
+                else if (audioFile.name.endsWith('.m4a')) mimeType = 'audio/m4a';
+                else if (audioFile.name.endsWith('.mp3')) mimeType = 'audio/mp3';
+                else if (audioFile.name.endsWith('.wav')) mimeType = 'audio/wav';
+                else mimeType = 'audio/mp3'; // 最悪のケースのフォールバック
+            }
 
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
             const requestBody = {
                 contents: [{
                     parts: [
-                        { text: "提供された音声ファイルを、一言一句正確に文字起こししてください。要約や挨拶などの余計なテキストは一切含めず、文字起こしの結果（テキスト）だけを出力してください。" },
+                        { text: "提供されたファイル（音声または動画）を解析し、一言一句正確に日本語で文字起こししてください。要約や追加のコメント、挨拶などは含めず、文字起こしの結果テキストだけを出力してください。" },
                         { inlineData: { mimeType: mimeType, data: base64Audio } }
                     ]
                 }]
@@ -313,13 +310,16 @@
                 body: JSON.stringify(requestBody)
             });
             
-            if (!response.ok) throw new Error('文字起こしAPIリクエストに失敗しました。');
+            if (!response.ok) {
+                const errData = await response.json();
+                console.error('APIエラー詳細:', errData);
+                throw new Error('文字起こしAPIリクエストに失敗しました。');
+            }
             
             const data = await response.json();
             return data.candidates[0].content.parts[0].text;
         }
 
-        // --- 4. Gemini API: 要約・要点生成処理 ---
         async function generateSummary(transcriptText, apiKey) {
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
@@ -352,7 +352,6 @@ ${transcriptText}
             const data = await response.json();
             let rawJsonText = data.candidates[0].content.parts[0].text.trim();
             
-            // AIがたまに出してしまう ```json ... ``` を除去する安全策
             if (rawJsonText.startsWith("```")) {
                 rawJsonText = rawJsonText.replace(/^```json\s*/i, "").replace(/```$/, "").trim();
             }
@@ -360,7 +359,6 @@ ${transcriptText}
             return JSON.parse(rawJsonText);
         }
 
-        // --- 5. コピー機能 ---
         function copyText(elementId) {
             const text = document.getElementById(elementId).innerText;
             navigator.clipboard.writeText(text).then(() => {
@@ -370,7 +368,6 @@ ${transcriptText}
             });
         }
 
-        // --- 6. イベントの紐付け（画面読み込み完了時） ---
         document.addEventListener('DOMContentLoaded', () => {
             const submitBtn = document.getElementById('submit-btn');
             const audioInput = document.getElementById('audio-input');
@@ -379,50 +376,41 @@ ${transcriptText}
             const summaryOutput = document.getElementById('summary-output');
             const pointsOutput = document.getElementById('points-output');
 
-            // APIキーの再設定
             document.getElementById('reset-api-btn').addEventListener('click', () => {
                 const newKey = prompt('新しいGeminiのAPIキーを入力してください：');
                 if (newKey) saveApiKey(newKey);
             });
 
-            // コピーボタン
             document.getElementById('copy-transcript-btn').addEventListener('click', () => copyText('transcript-output'));
             document.getElementById('copy-summary-btn').addEventListener('click', () => {
-                // 要約と要点をまとめてコピー用テキストにする
                 const summary = summaryOutput.innerText;
                 const points = Array.from(pointsOutput.querySelectorAll('li')).map(li => `・${li.innerText}`).join('\n');
                 navigator.clipboard.writeText(`【要約】\n${summary}\n\n【要点】\n${points}`).then(() => alert('要約と要点をコピーしました！'));
             });
 
-            // メイン処理：作成ボタンクリック
             submitBtn.addEventListener('click', async () => {
                 const apiKey = getApiKey();
                 if (!apiKey) return;
 
                 if (!audioInput.files || !audioInput.files[0]) {
-                    alert('音声ファイルを選択してください。');
+                    alert('ファイルを選択してください。');
                     return;
                 }
 
                 const file = audioInput.files[0];
 
-                // ボタンを「処理中」にして連打を防ぐ
                 submitBtn.disabled = true;
-                submitBtn.innerText = '⏳ AIが解析中（1〜2分かかる場合があります）...';
+                submitBtn.innerText = '⏳ AIが解析中（動画・大容量ファイルは2〜3分かかる場合があります）...';
 
                 try {
-                    // ① 文字起こしを実行
                     const transcript = await generateTranscript(file, apiKey);
                     transcriptOutput.innerText = transcript;
                     
-                    // 結果エリアを先に表示させる
                     resultSection.style.display = 'block';
 
-                    // ② 要約を実行
                     const resultJson = await generateSummary(transcript, apiKey);
                     summaryOutput.innerText = resultJson.summary;
 
-                    // 要点の箇条書きを生成
                     pointsOutput.innerHTML = '';
                     resultJson.points.forEach(point => {
                         const li = document.createElement('li');
@@ -434,9 +422,8 @@ ${transcriptText}
 
                 } catch (error) {
                     console.error(error);
-                    alert('処理中にエラーが発生しました。ファイルの形式やサイズ、またはAPIキーが正しいか確認してください。');
+                    alert('処理中にエラーが発生しました。ファイルサイズが大きすぎる（20MB以上）か、APIキーの設定、またはファイルが破損している可能性があります。');
                 } finally {
-                    // ボタンを元に戻す
                     submitBtn.disabled = false;
                     submitBtn.innerText = '✨ AIノートを作成する';
                 }
