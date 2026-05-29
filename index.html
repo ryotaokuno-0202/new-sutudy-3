@@ -334,4 +334,43 @@ ${transcriptText}
             document.getElementById('copy-transcript-btn').addEventListener('click', () => copyText('transcript-output'));
             document.getElementById('copy-summary-btn').addEventListener('click', () => {
                 const summary = summaryOutput.innerText;
-                const points = Array.from(pointsOutput.querySelectorAll('li')).map(li => `・${li.innerText}`).
+                const points = Array.from(pointsOutput.querySelectorAll('li')).map(li => `・${li.innerText}`).join('\n');
+                navigator.clipboard.writeText(`【要約】\n${summary}\n\n【要点】\n${points}`).then(() => alert('要約と要点をコピーしました！'));
+            });
+
+            submitBtn.addEventListener('click', async () => {
+                const apiKey = getApiKey();
+                if (!apiKey) return;
+                if (!audioInput.files || !audioInput.files[0]) return alert('ファイルを選択してください。');
+
+                const file = audioInput.files[0];
+                submitBtn.disabled = true;
+                submitBtn.innerText = '⏳ AIが解析中...';
+
+                try {
+                    const transcript = await generateTranscript(file, apiKey);
+                    transcriptOutput.innerText = transcript;
+                    resultSection.style.display = 'block';
+
+                    const resultJson = await generateSummary(transcript, apiKey);
+                    summaryOutput.innerText = resultJson.summary;
+
+                    pointsOutput.innerHTML = '';
+                    resultJson.points.forEach(point => {
+                        const li = document.createElement('li');
+                        li.innerText = point;
+                        pointsOutput.appendChild(li);
+                    });
+                    alert('✨ AIノートが完成しました！');
+                } catch (error) {
+                    console.error(error);
+                    alert('処理中にエラーが発生しました。時間を置いてもう一度試すか、ファイルが大きすぎる可能性があります。');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = '✨ AIノートを作成する';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
